@@ -71,13 +71,15 @@ bool do_exec(int count, ...)
 
 switch (fork())
     {
-        case -1: perror("execv"); return false;
+        case -1:{ perror("execv"); return false;}
         case 0:
-            if(execv(command[0], command) < 0) exit(1);
+        {   if(execv(command[0], command) < 0) exit(1);}
         default:
+        {
             int status;
             wait(&status);
             return !status;
+        }
             
     /* do whatever the parent wants to do. */
     } 
@@ -122,16 +124,20 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
     }
     switch (kidpid =fork())
     {
-        case -1: perror("execv"); return false;
+        case -1: {perror("execv"); return false;}
         case 0:
+        {
             if (dup2(fd, 1) < 0) { perror("dup2"); return false; }
             close(fd);
             if(execv(command[0], command) < 0) return false;
+        }
         default:
+        {
             close(fd);
             int status;
             waitpid(kidpid, &status, 0);
             return !status;
+        }
     /* do whatever the parent wants to do. */
     }
 
