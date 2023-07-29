@@ -13,7 +13,7 @@ BUSYBOX_VERSION=1_36_0
 FINDER_APP_DIR=$(realpath $(dirname $0))
 ARCH=arm64
 CROSS_COMPILE=aarch64-none-linux-gnu-
-toolchain=/home/rnosir/Embedded-Linux-Course-1/toolchain/gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu
+toolchain=/usr/local/arm-cross-compiler/install/gcc-arm-10.2-2020.11-x86_64-aarch64-none-linux-gnu/
 export PATH=$PATH:$toolchain/bin/
 if [ $# -lt 1 ]
 then
