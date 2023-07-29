@@ -7,9 +7,9 @@ set -u
 echo "starting manual-linux.sh"
 CURRDIR=$(pwd)
 OUTDIR=/tmp/aesd
-KERNEL_REPO=git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git
+KERNEL_REPO=https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git
 KERNEL_VERSION=v5.1.10
-BUSYBOX_VERSION=1_33_1
+BUSYBOX_VERSION=1_36_0
 FINDER_APP_DIR=$(realpath $(dirname $0))
 ARCH=arm64
 CROSS_COMPILE=aarch64-none-linux-gnu-
@@ -62,6 +62,8 @@ cd $OUTDIR/rootfs/
 mkdir -p bin etc dev lib home lib64 proc sbin sys tmp usr var
 mkdir -p usr/bin usr/lib usr/sbin
 mkdir -p var/log
+mkdir -p conf
+mkdir -p home/conf
 
 cd "$OUTDIR"
 if [ ! -d "${OUTDIR}/busybox" ]
@@ -87,7 +89,7 @@ ${CROSS_COMPILE}readelf -a bin/busybox | grep "Shared library"
 
 # TODO: Add library dependencies to rootfs
 cp -rf bin $OUTDIR/rootfs
-
+cp -rf usr/bin $OUTDIR/rootfs/usr
 cp $toolchain/aarch64-none-linux-gnu/libc/lib/ld-linux-aarch64.so.1 $OUTDIR/rootfs/lib/
 cp -rf $toolchain/aarch64-none-linux-gnu/libc/lib64 $OUTDIR/rootfs/
 
@@ -102,7 +104,12 @@ mknod -m 0600 dev/console c 5 1
 cd $FINDER_APP_DIR
 make clean
 make CROSS_COMPILE=${CROSS_COMPILE}
- cp -r ./* "$OUTDIR/rootfs/home"
+sudo cp   writer   $OUTDIR/rootfs/home/
+sudo cp   finder-test.sh $OUTDIR/rootfs/home/
+sudo cp   autorun-qemu.sh $OUTDIR/rootfs/home/
+sudo cp   finder.sh $OUTDIR/rootfs/home/
+sudo cp   ./conf/*   $OUTDIR/rootfs/conf
+sudo cp   ./conf/*   $OUTDIR/rootfs/home/conf
 
 # TODO: Chown the root directory
 sudo chown -R root:root *
