@@ -112,7 +112,6 @@ sudo cp   ./conf/*   $OUTDIR/rootfs/conf
 sudo cp   ./conf/*   $OUTDIR/rootfs/home/conf
 
 # TODO: Chown the root directory
-sudo chown -R root:root *
 # TODO: Create initramfs.cpio.gz
 cd $OUTDIR/rootfs
 find . | cpio -H newc -ov --owner root:root > ${OUTDIR}/initramfs.cpio
