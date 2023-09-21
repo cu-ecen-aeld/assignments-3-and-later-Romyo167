@@ -1,0 +1,171 @@
+/*
+** server.c -- a stream socket server demo
+*/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <sys/wait.h>
+#include <signal.h>
+#include <syslog.h>
+#include <time.h>
+#define PORT "9000"  // the port users will be connecting to
+
+#define BACKLOG 10   // how many pending connections queue will hold
+void sigchld_handler(int s)
+{
+    // waitpid() might overwrite errno, so we save and restore it:
+    int saved_errno = errno;
+    
+    while(waitpid(-1, NULL, WNOHANG) > 0);
+    errno = saved_errno;
+}
+
+
+// get sockaddr, IPv4 or IPv6:
+void *get_in_addr(struct sockaddr *sa)
+{
+    if (sa->sa_family == AF_INET) {
+        return &(((struct sockaddr_in*)sa)->sin_addr);
+    }
+
+    return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}
+
+int main(int argc, char *argv[])
+{
+    int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
+    struct addrinfo hints, *servinfo, *p;
+    struct sockaddr_storage their_addr; // connector's address information
+    socklen_t sin_size;
+    struct sigaction sa;
+    int yes=1;
+    char s[INET6_ADDRSTRLEN];
+    int rv;
+
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE; // use my IP
+
+    if ((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0) {
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+        return 1;
+    }
+
+    // loop through all the results and bind to the first we can
+    for(p = servinfo; p != NULL; p = p->ai_next) {
+        if ((sockfd = socket(p->ai_family, p->ai_socktype,
+                p->ai_protocol)) == -1) {
+            perror("server: socket");
+            continue;
+        }
+
+        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
+                sizeof(int)) == -1) {
+            perror("setsockopt");
+            exit(1);
+        }
+
+        // setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, (void *)&yes, sizeof(int));
+
+        if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+            close(sockfd);
+            perror("server: bind");
+            continue;
+        }
+
+        break;
+    }
+
+    freeaddrinfo(servinfo); // all done with this structure
+    system("rm /var/tmp/aesdsocketdata");
+
+
+if(argv[0] = "-d"){
+ if(!fork()){
+    if (p == NULL)  {
+        fprintf(stderr, "server: failed to bind\n");
+        exit(1);
+    }
+
+    if (listen(sockfd, BACKLOG) == -1) {
+        perror("listen");
+        exit(1);
+    }
+
+   
+
+    printf("server: waiting for connections...\n");
+
+    while(1) {  // main accept() loop
+        sin_size = sizeof their_addr;
+        new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
+        if (new_fd == -1) {
+            perror("accept");
+            continue;
+        }
+
+
+        inet_ntop(their_addr.ss_family,
+            get_in_addr((struct sockaddr *)&their_addr),
+            s, sizeof s);
+        printf("server: got connection from %s\n", s);
+
+        syslog(LOG_DEBUG, "Accepted connection from %s\n", s); 
+
+        
+       
+
+        FILE* msgfile = fopen("/var/tmp/aesdsocketdata", "a");
+        if(msgfile == NULL)
+        {
+            syslog(LOG_ERR, "couldn't open file for writing");
+            return -1; 
+        }
+        char *buf = (char *) malloc(50*sizeof(char));
+        int recv_bytes;
+        while((recv_bytes = recv(new_fd, buf, 49, 0)) != 0)
+        {
+                buf[recv_bytes] = '\0';
+                fputs(buf, msgfile);
+                memset(buf, '\0', sizeof(buf));
+
+        }
+                
+       fflush(msgfile);
+         fclose(msgfile);
+        int count;
+        size_t nread;
+            FILE* msgfile2 = fopen("/var/tmp/aesdsocketdata", "r");
+            while ((nread = fread(buf, 1, 49, msgfile2)) > 0){
+                buf[nread] = '\0';
+                int r =  send(new_fd, buf, nread , MSG_NOSIGNAL);
+            }
+            close(new_fd);
+            fclose(msgfile2);
+
+            sa.sa_handler = sigchld_handler; // reap all dead processes
+    if (sigaction(SIGINT, &sa, NULL) != 0) {
+        perror("sigINT");
+        exit(0);
+    }
+if (sigaction(SIGTERM, &sa, NULL) != 0) {
+        perror("sigTem");
+        exit(0);
+    }
+
+    }
+
+   }     // parent doesn't need this
+    }
+    return 0;
+}
+    
