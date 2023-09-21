@@ -124,7 +124,7 @@ if(argv[0] = "-d"){
         
        
 
-        FILE* msgfile = fopen("/var/tmp/aesdsocketdata", "a");
+        FILE* msgfile = fopen("/var/tmp/aesdsocketdata", "a+");
         if(msgfile == NULL)
         {
             syslog(LOG_ERR, "couldn't open file for writing");
@@ -138,17 +138,23 @@ if(argv[0] = "-d"){
                 fputs(buf, msgfile);
                 memset(buf, '\0', sizeof(buf));
 
+                if(recv_bytes  <  49)
+                {
+                    size_t nread;
+                    fseek(msgfile, 0, SEEK_SET);
+                     while ((nread = fread(buf, 1, 49, msgfile)) > 0){
+                    buf[nread] = '\0';
+                    int r =  send(new_fd, buf, nread , MSG_NOSIGNAL);
+                }
+                }
+
         }
                 
-       fflush(msgfile);
          fclose(msgfile);
         int count;
-        size_t nread;
+
             FILE* msgfile2 = fopen("/var/tmp/aesdsocketdata", "r");
-            while ((nread = fread(buf, 1, 49, msgfile2)) > 0){
-                buf[nread] = '\0';
-                int r =  send(new_fd, buf, nread , MSG_NOSIGNAL);
-            }
+           
             close(new_fd);
             fclose(msgfile2);
 
